@@ -1,0 +1,424 @@
+{
+  "name": "Email to Notion AI",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c21bbea7-592c-452b-9d19-12f662e511cc",
+      "name": "Email Trigger (IMAP)",
+      "credentials": {
+        "imap": {
+          "id": "f3XsT6kcuOdocVCA",
+          "name": "IMAP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Summarize this email in ONE short line ONLY. Do NOT include reasoning or extra text.\n\nSubject: {{ $json.subject }}\nBody: {{ $json.textPlain }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        144,
+        0
+      ],
+      "id": "2f46f286-57e4-4b75-9988-17ecb71c38ab",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "qwen/qwen3-32b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        144,
+        176
+      ],
+      "id": "da103b07-3bf8-4f9e-bb1d-d700a2a91396",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "Cfw7snPXYFU2D5Ue",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "81ce2801-d921-4002-beb7-e08e9e8d4555",
+              "name": "cl name",
+              "value": "={{ $('Email Trigger (IMAP)').item.json.from.includes('<') \n   ? $('Email Trigger (IMAP)').item.json.from.split('<')[0].trim() \n   : '' }}",
+              "type": "string"
+            },
+            {
+              "id": "a01240bb-44a4-456b-a6a4-3a656df7a882",
+              "name": "cl mail",
+              "value": "={{ $('Email Trigger (IMAP)').item.json.from.includes('<')     ? $('Email Trigger (IMAP)').item.json.from.split('<')[1].replace('>', '').trim()     : $('Email Trigger (IMAP)').item.json.from }}",
+              "type": "string"
+            },
+            {
+              "id": "1f4aca73-a16e-4fd7-aa19-570f7539b7fd",
+              "name": "task",
+              "value": "={{ $('Basic LLM Chain').item.json.text.replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "ab5c8e49-db1b-4269-b537-d25c7da078ed",
+              "name": "assigned date",
+              "value": "={{ \n(() => {\n  const d = new Date($('Email Trigger (IMAP)').item.json.date);\n  const day = d.toLocaleDateString('en-US', { weekday: 'short' });\n  const date = d.getDate();\n  const month = d.toLocaleDateString('en-US', { month: 'short' });\n  const year = d.getFullYear();\n  return `${day}, ${date} ${month} ${year}`;\n})()\n}}",
+              "type": "string"
+            },
+            {
+              "id": "f989f181-e23b-41c8-a048-afa394fb9205",
+              "name": "assigned to",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "c1084273-dc3f-4107-ba81-a2bbd821dc9c",
+              "name": "deadline",
+              "value": "={{ \n(() => {\n  // Parse the full email date\n  const assigned = new Date($('Email Trigger (IMAP)').item.json.date);\n  \n  // Add 10 days\n  const deadline = new Date(assigned);\n  deadline.setDate(deadline.getDate() + 10);\n  \n  // Format as \"Mon, 13 Apr 2026\"\n  const day = deadline.toLocaleDateString('en-US', { weekday: 'short' });\n  const date = deadline.getDate();\n  const month = deadline.toLocaleDateString('en-US', { month: 'short' });\n  const year = deadline.getFullYear();\n  \n  return `${day}, ${date} ${month} ${year}`;\n})()\n}}",
+              "type": "string"
+            },
+            {
+              "id": "66f29da9-db6c-4fb9-ba6b-9f241154b480",
+              "name": "fullMail",
+              "value": "={{\n(() => {\n  // 1. Safe data fetch (Prevents \"undefined\" error)\n  const nodeName = \"Email Trigger (IMAP)\";\n  const raw = $(nodeName).item.json.textHtml || \"\";\n  if (!raw) return \"No content found\";\n\n  let clean = raw;\n\n  // 2. Fix Mojibake using Unicode Escapes (The \"Magic\" Fix)\n  // \\u00e2\\u0080\\u0099 = â€™ (Apostrophe)\n  // \\u00c2\\u00a0 = Â (Non-breaking space)\n  // \\u00e2\\u0080\\u0093 = â€“ (En Dash)\n  clean = clean\n    .replace(/\\u00e2\\u0080\\u0099/g, \"'\")\n    .replace(/\\u00e2\\u0080\\u0098/g, \"'\")\n    .replace(/\\u00c2\\u00a0/g, \" \")\n    .replace(/\\u00c2/g, \"\")\n    .replace(/\\u00e2\\u0080\\u0093/g, \"-\")\n    .replace(/\\u00e2\\u0080\\u00a6/g, \"...\");\n\n  // 3. Handle HTML structure before stripping tags\n  clean = clean\n    .replace(/<br\\s*\\/?>/gi, '\\n')\n    .replace(/<\\/p>/gi, '\\n\\n')\n    .replace(/<\\/div>/gi, '\\n');\n\n  // 4. Strip HTML tags\n  clean = clean.replace(/<[^>]+>/g, '');\n\n  // 5. Fix common HTML entities\n  const entities = {\n    '&amp;': '&',\n    '&lt;': '<',\n    '&gt;': '>',\n    '&quot;': '\"',\n    '&#39;': \"'\",\n    '&nbsp;': ' '\n  };\n  \n  clean = clean.replace(/&amp;|&lt;|&gt;|&quot;|&#39;|&nbsp;/g, (m) => entities[m]);\n\n  // 6. Clean up whitespace\n  return clean\n    .replace(/[^\\S\\r\\n]+/g, ' ') // Collapse multiple spaces (but keep newlines)\n    .replace(/\\n\\s*\\n\\s*\\n/g, '\\n\\n') // Collapse excessive newlines\n    .trim();\n})()\n}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        0
+      ],
+      "id": "5486bcd6-61cb-4f74-9474-d647fc045400",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Act as an intelligent Dispatcher for a technical consultancy. Your task is to analyze an incoming client email and assign it to the most qualified expert based on their specialization.\n\n### EXPERT DEFINITIONS:\n1. Abir Hasan (Full Stack Web Developer):\n- Focus: Websites, web applications, e-commerce, front-end (React/Angular), back-end (Node/Django), and browser-based interfaces.\n\n2. Tanvir Ahmed (Full Stack AI/ML Developer):\n- Focus: Machine learning models, data science, natural language processing (NLP), LLMs, computer vision, predictive analytics, and AI integrations.\n\n3. Sakib Hossain (Software Developer):\n- Focus: Desktop applications, system-level software, command-line tools, legacy system maintenance, general algorithms, and non-web-based software solutions.\n\n### CLASSIFICATION RULES:\n- If the project involves a website or a web portal, assign to: Abir Hasan.\n- If the core requirement is \"intelligence,\" data training, or automation via AI, assign to: Tanvir Ahmed.\n- If it is a standalone software, desktop tool, or general coding task not related to the web or AI, assign to: Sakib Hossain.\n- If a project overlaps, prioritize the core technology (e.g., a \"Web app for AI\" goes to Tanvir Ahmed; an \"AI company's landing page\" goes to Abir Hasan).\n\n### OUTPUT INSTRUCTIONS:\n- You must respond with ONLY the acronym of the assigned expert: Abir Hasan, Tanvir Ahmed, or Sakib Hossain.\n- Do not provide any explanation, greeting, or punctuation.\n\n### EMAIL TO ANALYZE:\n{{ $('Email Trigger (IMAP)').item.json.textPlain }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        416,
+        0
+      ],
+      "id": "cac3aeb0-08d5-4aad-8c3c-925bc9aba9ad",
+      "name": "Basic LLM Chain1"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        416,
+        176
+      ],
+      "id": "f0f425fc-c1fb-4ee6-becb-f963bef02a4c",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "Cfw7snPXYFU2D5Ue",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "3377ba25-aff4-80b0-b718-da5510036a4c",
+          "mode": "list",
+          "cachedResultName": "3377ba25-aff4-80b0-b718-da5510036a4c",
+          "cachedResultUrl": "https://www.notion.so/3377ba25aff480b0b718da5510036a4c"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Client Email|rich_text",
+              "textContent": "={{ $json['cl mail'] }}"
+            },
+            {
+              "key": "Client Name|title",
+              "title": "={{ $json['cl name'] }}"
+            },
+            {
+              "key": "Assigned On|rich_text",
+              "textContent": "={{ $json['assigned date'] }}"
+            },
+            {
+              "key": "Assigned To|rich_text",
+              "textContent": "={{ $json['assigned to'] }}"
+            },
+            {
+              "key": "Deadline|rich_text",
+              "textContent": "={{ $json.deadline }}"
+            },
+            {
+              "key": "Task|rich_text",
+              "textContent": "={{ $json.task }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        816,
+        0
+      ],
+      "id": "32ea2fd6-b974-4eae-a4dd-5485348e0308",
+      "name": "Create a database page",
+      "credentials": {
+        "notionApi": {
+          "id": "KAdbDdotIPdMdFeh",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "block",
+        "blockId": {
+          "__rl": true,
+          "value": "={{ $json.url }}",
+          "mode": "url"
+        },
+        "blockUi": {
+          "blockValues": [
+            {
+              "textContent": "={{ $('Edit Fields').item.json.fullMail }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        976,
+        0
+      ],
+      "id": "1bbdc893-14e5-4805-af51-50d63e00160f",
+      "name": "Append a block",
+      "credentials": {
+        "notionApi": {
+          "id": "KAdbDdotIPdMdFeh",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=EMAIL RECEIVED: {{ $('Edit Fields').item.json.fullMail }}\nDEADLINE: {{ $('Edit Fields').item.json.deadline }}",
+        "options": {
+          "systemMessage": "**Role:** \nYou are a highly professional and polite administrative assistant managing email correspondence for an AI consultant firm. \n\n**Task:** \nThe user will provide you with the body of a received email and a specific deadline. Your job is to draft a concise, professional reply back to the original sender.\n\n**Strict Instructions:**\n1. **Express Gratitude:** You must always open the email by thanking the sender. Use a variation of \"Thank you for contacting us,\" \"Thank you for reaching out,\" or \"Thank you for your email regarding [Context].\"\n2. **Acknowledge the Email:** Briefly mention the core topic of their email so they know it was received and understood.\n3. **State the Deadline:** You must clearly and explicitly state the deadline provided by the user, positioning it as **our firm's deadline to complete and submit the project back to them**. (e.g., \"Our team will complete and submit the project to you by [Deadline],\" or \"You can expect our final delivery no later than [Deadline].\")\n4. **Tone:** Keep the tone polite, professional, and clear. Avoid overly flowery language.\n5. **No Fluff:** Output ONLY the email draft. Do not include AI conversational filler like \"Here is the email you requested.\"\n6. **Sign-off:** first put a new line then Use a standard professional closing (e.g., \"Best regards,\") then a new line followed by name -> \"Camel Tech\"\n7. **Length:** KEEP THE EMAIL MUCH SHORTER. IN 2 LINES\n9. KEEP IT IN HUMAN TONE\n10. DONT ADD LINES LIKE NO LATER THAT\n11. **Output Formatting:** You must generate a short subject and place it at the very beginning enclosed in `<sub>` tags (e.g., `<sub>Subject Here</sub>`). After the subject, the entire full email draft must be enclosed in `<mail>` tags (e.g., `<mail>Email body here</mail>`).\n12. DONT MAKE THE SUBJECT TOO GENERIC. DONT WRITE A DIRECT LINE FROM THE MAIL\n13. ADD FULL STOP AFTER A SENTENCE END......except the Best Regards part\n\n**Input Format:**\nThe user will provide the information in this format:\nEMAIL RECEIVED: [Text of the email]\nDEADLINE: [Date/Time]\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1104,
+        0
+      ],
+      "id": "196be6f7-14fb-4a86-9f3d-2dd69135940c",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        176
+      ],
+      "id": "c32a551d-347e-4098-be38-8ac2a24fec85",
+      "name": "Groq Chat Model2",
+      "credentials": {
+        "groqApi": {
+          "id": "Cfw7snPXYFU2D5Ue",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Edit Fields').item.json['cl mail'] }}",
+        "subject": "={{$json[\"output\"].match(/<sub>(.*?)<\\/sub>/)?.[1] || \"No Subject\"}}",
+        "message": "={{ $json[\"output\"].match(/<mail>([\\s\\S]*?)<\\/mail>/)?.[1].replace(/\\n/g, '<br>') || \"No Message\" }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1360,
+        0
+      ],
+      "id": "36369637-a9c0-450c-b35a-da5bff91fcb0",
+      "name": "Send a message",
+      "webhookId": "c3e86dc2-78ec-440c-8a1b-4a6b26807fc4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "X8pys69ak3hVDPZZ",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Email Trigger (IMAP)": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Create a database page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a database page": {
+      "main": [
+        [
+          {
+            "node": "Append a block",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append a block": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "dc3ef560-dcaa-4ccb-ab48-7623de7bb6ee",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9ab4340145962247d9a7ff23621af6cbde479f8594451820183630fcdeba7873"
+  },
+  "id": "dQbMovPpqVmF7QJU",
+  "tags": []
+}
