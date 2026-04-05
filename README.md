@@ -10,3 +10,9 @@
 5. Stores all structured data in a Notion database (Client Name, Client Email, Task, Assigned On Date, Assigned To, Deadline)
 6. Saves the full original email inside the Database page for reference
 7. Sends an automatic reply (with subject and message) to the client confirming task receipt
+
+___________________________________________
+<img width="710" height="301" alt="incoming mail" src="https://github.com/user-attachments/assets/c1a80f2c-195b-4007-8d9f-d7e19563c45c" />
+Automatically reads incoming client emails and extracts data
+
+___________________________________________
