@@ -40,7 +40,7 @@ Adds the full original email to the database for reference:
 <img width="926" height="424" alt="Capture" src="https://github.com/user-attachments/assets/a47ee21f-af9b-4a3c-97a5-a31a866f427b" />
 
 _______________________________________
-Replies with a confirmation email including subject, message, and deadline to the client:
+Sends a confirmation email to the client with subject, message, and deadline:
 
 <img width="593" height="202" alt="reply" src="https://github.com/user-attachments/assets/ea9fd48b-3358-48a6-bda1-fecf6797e041" />
 
