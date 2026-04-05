@@ -26,8 +26,8 @@ Stores the extracted informations in Notion database:
 AI generates a clear task summary and stores in 'Task' column
 
 Suppose there are 3 experts, 
-Tanvir Ahmed: Full Stack AI/ML Developer
-Abir Hasan: Full Stack Web Developer 
-Sakib Hossain: Software Developer
+Tanvir Ahmed: Full Stack AI/ML Developer\n
+Abir Hasan: Full Stack Web Developer, 
+Sakib Hossain: Software Developer, 
 AI automatically selects the most suitable expert based on task
 
