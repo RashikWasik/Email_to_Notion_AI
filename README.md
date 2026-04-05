@@ -35,7 +35,14 @@ A 10-day deadline is set from the assigned date
 
 _______________________________________
 Adds the full original email to the database for reference:
+
 <img width="926" height="424" alt="Capture" src="https://github.com/user-attachments/assets/a47ee21f-af9b-4a3c-97a5-a31a866f427b" />
+
+_______________________________________
+Sends a confirmation email with subject, message, and deadline to the client:
+
+<img width="593" height="202" alt="reply" src="https://github.com/user-attachments/assets/ea9fd48b-3358-48a6-bda1-fecf6797e041" />
+
 
 
 
