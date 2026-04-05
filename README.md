@@ -21,7 +21,8 @@ Automatically reads incoming client emails and extracts data
 _______________________________________
 Stores the extracted informations in Notion database:
 
-<img width="827" height="267" alt="notion" src="https://github.com/user-attachments/assets/72b13d20-d07f-41c3-aa3d-30a76058f4a3" />
+<img width="754" height="230" alt="notion" src="https://github.com/user-attachments/assets/d094f26c-5162-4779-a6b0-f6303176c55d" />
+
 
 AI generates a clear task summary and stores in 'Task' column
 
