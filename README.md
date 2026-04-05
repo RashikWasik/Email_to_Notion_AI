@@ -19,10 +19,15 @@ Incoming email:
 Automatically reads incoming client emails and extracts data
 
 ___________________________________________
-Stores the extracted informations in Notion database
+Stores the extracted informations in Notion database:
 
 <img width="827" height="267" alt="notion" src="https://github.com/user-attachments/assets/72b13d20-d07f-41c3-aa3d-30a76058f4a3" />
 
-AI generates a clear task summary and stores in 'Task' column.
+AI generates a clear task summary and stores in 'Task' column
 
+Suppose there are 3 experts, 
+Tanvir Ahmed: Full Stack AI/ML Developer
+Abir Hasan: Full Stack Web Developer 
+Sakib Hossain: Software Developer
+AI automatically selects the most suitable expert based on task
 
