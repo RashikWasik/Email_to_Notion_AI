@@ -11,14 +11,14 @@
 6. Saves the full original email inside the Database page for reference
 7. Sends an automatic reply (with subject and message) to the client confirming task receipt
 
-___________________________________________
+_______________________________________
 Incoming email:
 
 <img width="710" height="301" alt="incoming mail" src="https://github.com/user-attachments/assets/c1a80f2c-195b-4007-8d9f-d7e19563c45c" />
 
 Automatically reads incoming client emails and extracts data
 
-___________________________________________
+_______________________________________
 Stores the extracted informations in Notion database:
 
 <img width="827" height="267" alt="notion" src="https://github.com/user-attachments/assets/72b13d20-d07f-41c3-aa3d-30a76058f4a3" />
@@ -30,4 +30,13 @@ Tanvir Ahmed: Full Stack AI/ML Developer,
 Abir Hasan: Full Stack Web Developer, 
 Sakib Hossain: Software Developer, 
 AI automatically selects the most suitable expert based on task
+
+A 10-day deadline is set from the assigned date
+
+_______________________________________
+Adds the full original email to the database for reference:
+<img width="926" height="424" alt="Capture" src="https://github.com/user-attachments/assets/a47ee21f-af9b-4a3c-97a5-a31a866f427b" />
+
+
+
 
