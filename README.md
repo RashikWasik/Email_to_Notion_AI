@@ -13,6 +13,7 @@
 
 ___________________________________________
 <img width="710" height="301" alt="incoming mail" src="https://github.com/user-attachments/assets/c1a80f2c-195b-4007-8d9f-d7e19563c45c" />
+
 Automatically reads incoming client emails and extracts data
 
 ___________________________________________
