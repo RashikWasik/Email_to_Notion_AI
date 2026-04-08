@@ -12,6 +12,8 @@
 7. Sends an automatic reply (with subject and message) to the client confirming task receipt
 
 _______________________________________
+Notion Page Link: https://petalite-carriage-960.notion.site/Email-to-Notion-AI-N8N-3377ba25aff480aea091d0016320fcdb
+_______________________________________
 Incoming email:
 
 <img width="710" height="301" alt="incoming mail" src="https://github.com/user-attachments/assets/c1a80f2c-195b-4007-8d9f-d7e19563c45c" />
