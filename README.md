@@ -41,7 +41,7 @@ Adds the full original email to the database for reference:
 
 _______________________________________
 Sends a confirmation email to the client with subject, message, and deadline:
-
+Suppose this automation workflow is designed for a business systemization consultancy 'Camel Tech'
 <img width="593" height="202" alt="reply" src="https://github.com/user-attachments/assets/ea9fd48b-3358-48a6-bda1-fecf6797e041" />
 
 
